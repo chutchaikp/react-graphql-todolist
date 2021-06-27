@@ -1,0 +1,8 @@
+query GetTodos {
+  todos(sort: "updatedAt:desc") {
+    id
+    title
+    finished
+    updatedAt
+  }
+}

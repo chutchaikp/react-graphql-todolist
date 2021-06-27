@@ -1,0 +1,17 @@
+mutation CreateTodo($todo: TodoInput) {
+  createTodo(input: { data: $todo }) {
+    todo {
+      id
+      title
+      updatedAt
+    }
+  }
+}
+
+mutation DeleteTodo($id: ID!) {
+  deleteTodo(input: { where: { id: $id } }) {
+    todo {
+      id
+    }
+  }
+}
