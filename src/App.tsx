@@ -186,7 +186,7 @@ function App() {
                     // TODO remove all selected
 
                   }}>
-                    bulk remove
+                    removes
                   </Button>
 
                   <Button size="sm" onClick={async () => {
@@ -220,7 +220,7 @@ function App() {
                       return newData;
                     })
 
-                  }} > bulk archive </Button>
+                  }} > toggle archives </Button>
 
                 </HStack>
 
