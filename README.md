@@ -1,4 +1,4 @@
-# Todo List
+# Todo List App
 
 ### Tech stacks
 
