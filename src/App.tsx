@@ -98,7 +98,7 @@ function App() {
         <Flex direction="row"
           color="white"
           p="5px" bg={status === 'success' ? 'green.500' : 'red'} rounded="md" alignItems="center" >
-          <CheckCircleIcon mr="5px" fontSize="18px" />
+          <CheckCircleIcon mx="5px" fontSize="18px" />
           <p style={{ color: 'white', marginLeft: '5px', fontSize: '18px' }}>{msg}</p>
         </Flex>
       )
@@ -107,9 +107,9 @@ function App() {
 
   if (loading) {
     return (<Stack>
-      <Skeleton height="20px" />
-      <Skeleton height="20px" />
-      <Skeleton height="20px" />
+      <Skeleton height="40px" />
+      <Skeleton height="40px" />
+      <Skeleton height="40px" />
     </Stack>)
   }
 
