@@ -1,5 +1,5 @@
 overwrite: true
-schema: "https://headless.herokuapp.com/graphql"
+schema: "https://xxxxxx.herokuapp.com/graphql"
 documents: "src/**/*.graphql"
 generates:
   src/types/graphql.v1.ts:

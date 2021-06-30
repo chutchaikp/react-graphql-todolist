@@ -31,12 +31,29 @@ function App() {
   const [update, updateVars] = useUpdateTodoMutation();
 
   const validateInvalid = (e: any) => {
+    const format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
     const frm = e.target;
     let invalid = { ...invalidFields };
-    invalid = { ...invalid, title: (frm.title.value.length > 0 ? false : true) }
-    setInvalidFields(invalid)
 
-    // TODO: validate spectial charater
+    invalid = {
+      ...invalid, title: (frm.title.value.length > 0 ||
+        frm.title.value.length > 20 ||
+        format.test(frm.title.value)
+        ? false : true)
+    }
+
+    // Validate length > 20 chars    
+    if (frm.title.value.length > 20) {
+      showToast('Exceeding the maximum allowable length', 'error')
+      return true;
+    }
+    // Validate spectial charater    
+    if (format.test(frm.title.value)) {
+      showToast('Special characters not allowed', 'error')
+      return true;
+    }
+
+    setInvalidFields(invalid)
 
     const keys = Object.keys(invalid);
     const found = keys.some((s: string) => {
@@ -71,7 +88,7 @@ function App() {
     }
   }
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, status: string = 'success') => {
     toast({
       title: msg,
       status: 'success',
@@ -80,7 +97,7 @@ function App() {
       render: () => (
         <Flex direction="row"
           color="white"
-          p="5px" bg="green.500" rounded="md" alignItems="center" >
+          p="5px" bg={status === 'success' ? 'green.500' : 'red'} rounded="md" alignItems="center" >
           <CheckCircleIcon mr="5px" fontSize="18px" />
           <p style={{ color: 'white', marginLeft: '5px', fontSize: '18px' }}>{msg}</p>
         </Flex>
@@ -282,42 +299,4 @@ function App() {
 }
 
 export default App;
-
-function TodoItem(t: any, setRemovingId: React.Dispatch<React.SetStateAction<undefined>>, del: any, setTodos: React.Dispatch<any>, delVars: any, removingId: undefined) {
-  const dist = formatDistance(
-    new Date(t.updatedAt),
-    new Date(),
-    { includeSeconds: true }
-  )
-
-  return <li key={t.id}>
-
-    <Flex direction="row">
-      <Checkbox w="30px" size="lg" mr="1rem" onChange={() => { }} />
-
-      <Flex w="100%" justify="space-between" direction={{ base: "row", sm: "column", md: "row" }}>
-        <Box flexGrow={1}>
-          <div className="title">{t.title}</div>
-          <span>{dist}</span>
-        </Box>
-        <HStack w="150px">
-          <Button size="xs" variant="outline" colorScheme="purple">archive</Button>
-          <Button size="xs" variant="solid" colorScheme="red" onClick={async () => {
-            setRemovingId(t.id);
-            const res = await del({ variables: { id: t.id } });
-            setTodos((prev: any) => {
-              return prev.filter((t: any) => {
-                const id = res.data?.deleteTodo?.todo?.id;
-                return id !== t.id;
-              });
-            });
-            console.log(res.data?.deleteTodo?.todo?.id, 'deleted');
-
-          }}> {delVars.loading && removingId === t.id ? 'removing' : 'remove'} </Button>
-        </HStack>
-      </Flex>
-
-    </Flex>
-  </li>;
-}
 
