@@ -7,6 +7,7 @@ import theme from "./theme"
 
 import './index.css';
 import App from './App';
+import Prev from './Prev';
 
 const { REACT_APP_GRAPHQL_SCHEMA } = process.env;
 
@@ -49,6 +50,7 @@ ReactDOM.render(
     <ApolloProvider client={client}>
       <ChakraProvider theme={theme}>
         <App />
+        {/* <Prev /> */}
       </ChakraProvider>
     </ApolloProvider>
   </React.StrictMode>,

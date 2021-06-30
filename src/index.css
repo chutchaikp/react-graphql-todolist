@@ -17,14 +17,19 @@ body {
   color: #030303;
   font-size: 1.6rem;
   font-weight: 500;
-  line-height: 16px;
+  line-height: 23px;
   letter-spacing: 0.3px;
+}
+
+.todo-finished {
+  text-decoration: line-through;
+  color: rgb(198, 197, 197);
 }
 
 span {
   color: #606060;
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .error {
