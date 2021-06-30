@@ -6,3 +6,19 @@ query GetTodos {
     updatedAt
   }
 }
+
+query GetTodosWithFetchMore($limit: Int, $start: Int) {
+  # todos(limit: $limit, start: $start, sort: "updatedAt:desc") {
+  todos(limit: $limit, start: $start, sort: "updatedAt:desc") {
+    id
+    title
+    finished
+    updatedAt
+  }
+
+  todosConnection {
+    aggregate {
+      count
+    }
+  }
+}

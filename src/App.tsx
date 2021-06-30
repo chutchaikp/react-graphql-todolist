@@ -1,10 +1,11 @@
 import { Alert, AlertDescription, AlertIcon, AlertTitle, Badge, Box, Button, Checkbox, CloseButton, Flex, FormControl, HStack, Input, propNames, Skeleton, Stack, useToast, VStack } from '@chakra-ui/react';
 import { CheckCircleIcon } from '@chakra-ui/icons'
 import { formatDistance } from 'date-fns';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { useCreateTodoMutation, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from './types/graphql.v1';
+import { useCreateTodoMutation, useDeleteTodoMutation, useGetTodosQuery, useGetTodosWithFetchMoreLazyQuery, useGetTodosWithFetchMoreQuery, useUpdateTodoMutation } from './types/graphql.v1';
 import { finished } from 'stream';
+import MySkeleton from './components/MySkeleton';
 
 function App() {
   const toast = useToast()
@@ -13,25 +14,51 @@ function App() {
     title: false,
   })
 
-  const [todos, setTodos] = useState<any>([])
+  const [todos, setTodos] = useState<any>([]) // ***
+  const [todoCount, setTodoCount] = useState(0)
+
   const [removingId, setRemovingId] = useState()
   const [updatingId, setUpdatingId] = useState<any>()
 
-  const { data, loading, error } = useGetTodosQuery({
+  // const { data, loading, error } = useGetTodosQuery({
+  //   onCompleted: (data) => {
+  //     const gdata = [...data.todos || []]
+  //     const gDataWithSelectProps = gdata.map((g) => {
+  //       return { ...g, selected: false, }
+  //     })
+  //     setTodos(gDataWithSelectProps)
+  //   }
+  // });
+
+  // How to implemnt fetchMore
+  // const {data, loading, error} = useGetTodosWithFetchMoreQuery({
+  //   variables: { limit: 2, start: todos.length === 0 ? 0 : todos.length - 1, }
+  // })
+
+  const [fetch, fetchVars] = useGetTodosWithFetchMoreLazyQuery({
     onCompleted: (data) => {
-      const gdata = [...data.todos || []]
+      const gdata = [...todos, ...data.todos || []]
       const gDataWithSelectProps = gdata.map((g) => {
         return { ...g, selected: false, }
       })
+
       setTodos(gDataWithSelectProps)
+      setTodoCount(data.todosConnection?.aggregate?.count || 0)
     }
-  });
+  })
+
+  useEffect(() => {
+    fetch({
+      variables: { limit: 2, start: todos.length === 0 ? 0 : todos.length - 1 }
+    })
+  }, [])
+
   const [create, createVars] = useCreateTodoMutation();
   const [del, delVars] = useDeleteTodoMutation();
   const [update, updateVars] = useUpdateTodoMutation();
 
   const validateInvalid = (e: any) => {
-    const format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+    const format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
     const frm = e.target;
     let invalid = { ...invalidFields };
 
@@ -68,9 +95,7 @@ function App() {
     if (validateInvalid(e)) {
       // invalid found
     } else {
-      // Mutate .....
-      debugger;
-
+      // Mutate .....      
       const res = await create({
         variables: {
           todo: {
@@ -105,18 +130,14 @@ function App() {
     })
   }
 
-  if (loading) {
-    return (<Stack>
-      <Skeleton height="40px" />
-      <Skeleton height="40px" />
-      <Skeleton height="40px" />
-    </Stack>)
+  if (todos.length === 0 && fetchVars.loading) {
+    return (<MySkeleton />)
   }
 
-  if (error) {
+  if (fetchVars.error) {
     return (<Alert status="error">
       <AlertIcon />
-      <AlertDescription>{error}</AlertDescription>
+      <AlertDescription>{fetchVars.error}</AlertDescription>
       <CloseButton position="absolute" right="8px" top="8px" />
     </Alert>)
   }
@@ -131,8 +152,8 @@ function App() {
           <FormControl isInvalid={invalidFields.title}>
             <label>
               <HStack align="center" >
-                <Input name="title" size="sm" placeholder="Enter todo here" defaultValue="" ref={el => iRef.current['title'] = el} />
-                <Button rounded="none" size="sm" variant="outline" type="submit" >
+                <Input name="title" size="md" placeholder="Enter todo here" defaultValue="" ref={el => iRef.current['title'] = el} />
+                <Button rounded="none" size="md" variant="outline" type="submit" >
                   {createVars.loading ? 'saving' : 'save'}
                 </Button>
               </HStack>
@@ -141,10 +162,9 @@ function App() {
 
         </form>
 
-
-        {/* boxShadow="md" p="6" rounded="md" bg="white" */}
-        <Box boxShadow="md" p="6" rounded="md" bg="white" width="100%">
+        <Box boxShadow="lg" px="6" pb="4" rounded="md" bg="white" width="100%">
           <ul style={{ width: '100%', }}>
+            <li> total {todoCount}</li>
             <li>
               <Flex direction="row" justify="space-between">
                 <Checkbox size="lg" onChange={(e) => {
@@ -169,23 +189,24 @@ function App() {
                     bulk remove
                   </Button>
 
-
-
                   <Button size="sm" onClick={async () => {
-                    // TODO update all selected
                     showToast('Updating selected todos')
+                    try {
+                      todos.forEach(async (td: any) => {
+                        if (!td.selected) return;
+                        const result = await update({
+                          variables: {
+                            Todo: { finished: !td.finished },
+                            id: td.id,
+                          },
+                        })
+                        console.log(result)
+                      });
 
-                    todos.forEach(async (td: any) => {
+                    } catch (error) {
                       debugger;
-                      if (!td.finished) return;
-                      const result = await update({
-                        variables: {
-                          Todo: { finished: !td.finished },
-                          id: td.id,
-                        },
-                      })
-                      console.log(result)
-                    });
+
+                    }
 
                     // update ui
                     setTodos((prev: any) => {
@@ -289,6 +310,19 @@ function App() {
                 </li>
               )
             })}
+
+            <li>
+              {todos.length < todoCount && (
+                <Button onClick={() => {
+                  fetch({
+                    variables: { limit: 2, start: todos.length }
+                  })
+                }} >
+                  {fetchVars.loading ? 'Loading ...' : 'Load more ... '}
+                </Button>
+              )}
+
+            </li>
           </ul>
         </Box>
 

@@ -1897,6 +1897,26 @@ export type GetTodosQuery = (
   )>>> }
 );
 
+export type GetTodosWithFetchMoreQueryVariables = Exact<{
+  limit?: Maybe<Scalars['Int']>;
+  start?: Maybe<Scalars['Int']>;
+}>;
+
+
+export type GetTodosWithFetchMoreQuery = (
+  { __typename?: 'Query' }
+  & { todos?: Maybe<Array<Maybe<(
+    { __typename?: 'Todo' }
+    & Pick<Todo, 'id' | 'title' | 'finished' | 'updatedAt'>
+  )>>>, todosConnection?: Maybe<(
+    { __typename?: 'TodoConnection' }
+    & { aggregate?: Maybe<(
+      { __typename?: 'TodoAggregator' }
+      & Pick<TodoAggregator, 'count'>
+    )> }
+  )> }
+);
+
 
 export const CreateTodoDocument = gql`
     mutation CreateTodo($todo: TodoInput) {
@@ -2044,3 +2064,47 @@ export function useGetTodosLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetTodosQueryHookResult = ReturnType<typeof useGetTodosQuery>;
 export type GetTodosLazyQueryHookResult = ReturnType<typeof useGetTodosLazyQuery>;
 export type GetTodosQueryResult = Apollo.QueryResult<GetTodosQuery, GetTodosQueryVariables>;
+export const GetTodosWithFetchMoreDocument = gql`
+    query GetTodosWithFetchMore($limit: Int, $start: Int) {
+  todos(limit: $limit, start: $start, sort: "updatedAt:desc") {
+    id
+    title
+    finished
+    updatedAt
+  }
+  todosConnection {
+    aggregate {
+      count
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetTodosWithFetchMoreQuery__
+ *
+ * To run a query within a React component, call `useGetTodosWithFetchMoreQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTodosWithFetchMoreQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTodosWithFetchMoreQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      start: // value for 'start'
+ *   },
+ * });
+ */
+export function useGetTodosWithFetchMoreQuery(baseOptions?: Apollo.QueryHookOptions<GetTodosWithFetchMoreQuery, GetTodosWithFetchMoreQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTodosWithFetchMoreQuery, GetTodosWithFetchMoreQueryVariables>(GetTodosWithFetchMoreDocument, options);
+      }
+export function useGetTodosWithFetchMoreLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTodosWithFetchMoreQuery, GetTodosWithFetchMoreQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTodosWithFetchMoreQuery, GetTodosWithFetchMoreQueryVariables>(GetTodosWithFetchMoreDocument, options);
+        }
+export type GetTodosWithFetchMoreQueryHookResult = ReturnType<typeof useGetTodosWithFetchMoreQuery>;
+export type GetTodosWithFetchMoreLazyQueryHookResult = ReturnType<typeof useGetTodosWithFetchMoreLazyQuery>;
+export type GetTodosWithFetchMoreQueryResult = Apollo.QueryResult<GetTodosWithFetchMoreQuery, GetTodosWithFetchMoreQueryVariables>;
